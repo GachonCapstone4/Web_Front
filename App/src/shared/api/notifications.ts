@@ -79,7 +79,7 @@ function normalizeType(type: string) {
   return type.trim().toUpperCase();
 }
 
-function buildNotificationMeta(type: string) {
+function buildNotificationMeta(type: string, relatedId?: string | null) {
   const normalizedType = normalizeType(type);
 
   if (normalizedType.includes("CALENDAR")) {
@@ -96,9 +96,10 @@ function buildNotificationMeta(type: string) {
     normalizedType.includes("ACCOUNT") ||
     normalizedType.includes("FAILED")
   ) {
+    const isAutoSend = normalizedType.includes("AUTO_SEND");
     return {
-      actionLabel: normalizedType.includes("AUTO_SEND") ? "초안 확인" : "설정 확인",
-      actionPath: normalizedType.includes("AUTO_SEND") ? "/app/inbox" : "/app/settings?tab=email",
+      actionLabel: isAutoSend ? "초안 확인" : "설정 확인",
+      actionPath: isAutoSend && relatedId ? `/app/inbox/${relatedId}` : isAutoSend ? "/app/inbox" : "/app/settings?tab=email",
       tone: "red" as const,
     };
   }
@@ -131,7 +132,8 @@ type NotificationApiItem = NonNullable<
 >[number];
 
 function mapNotification(item: NotificationApiItem): NotificationItem {
-  const meta = buildNotificationMeta(item.type);
+  const relatedId = item.related_id != null ? String(item.related_id) : null;
+  const meta = buildNotificationMeta(item.type, relatedId);
 
   return {
     id: String(item.notification_id),
@@ -143,6 +145,7 @@ function mapNotification(item: NotificationApiItem): NotificationItem {
     actionPath: meta.actionPath,
     read: item.is_read,
     tone: meta.tone,
+    relatedId,
   };
 }
 

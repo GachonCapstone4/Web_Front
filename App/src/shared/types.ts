@@ -123,6 +123,7 @@ export interface NotificationItem {
   actionPath: string;
   read: boolean;
   tone: "teal" | "amber" | "red";
+  relatedId?: string | null;
 }
 
 export interface AccountSettings {
